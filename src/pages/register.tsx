@@ -22,6 +22,7 @@ const REGISTER_MUT = `mutation Register($username: String!, $password: String!) 
 
 const Register: React.FC<registerProps> = ({}) => {
   const [,register] = useMutation(REGISTER_MUT);
+  // const [,register] = ;
   return (
     <Wrapper variant="small">
       <Formik
