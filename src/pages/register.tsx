@@ -3,31 +3,30 @@ import { Form, Formik } from "formik";
 import { Box, Button } from "@chakra-ui/react";
 import Wrapper from "../components/Wrapper";
 import InputField from "../components/InputField";
-import { useMutation } from "urql";
+import { useRegisterMutation } from "../gql/grqphql";
+import { toErrorMaps } from "../util/toErrorMaps";
+import { useRouter } from "next/router";
 
 interface registerProps {}
 
-const REGISTER_MUT = `mutation Register($username: String!, $password: String!) {
-    login(options: {username: $username, password: $password}) {
-      errors {
-        field
-        message
-      }
-      user {
-        id
-        username
-      }
-    }
-  }`
-
 const Register: React.FC<registerProps> = ({}) => {
-  const [,register] = useMutation(REGISTER_MUT);
-  // const [,register] = ;
+  const router = useRouter();
+  const [,register] = useRegisterMutation();
   return (
     <Wrapper variant="small">
       <Formik
         initialValues={{ username: "", password: "" }}
-        onSubmit={(values) => register(values)}
+        onSubmit={
+            async (values, { setErrors }) => {
+                const response = await register(values);
+                if (response.data?.register.errors) {
+                    setErrors(toErrorMaps(response.data.register.errors))
+                } else if (response.data?.register.user) {
+                    // worked
+                    router.push('/');
+                }
+            }
+        }
       >
         {({ isSubmitting }) => (
           <Form>
@@ -35,6 +34,7 @@ const Register: React.FC<registerProps> = ({}) => {
               name="username"
               placeholder="username"
               label="Username"
+              type="text"
             />
             <Box mt={4}>
               <InputField
